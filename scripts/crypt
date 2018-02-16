@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [[ -z $1 ||  -z $2 || -z $3 ]]; then
-    echo "\n\tUsage:\tcrypt <amt_spent> <eos_held/> <eth_held/>"
+if [[ -z $1 ||  -z $2 || -z $3 || -z $4 ]]; then
+    echo -e "\n\tUsage:\tcrypt <amt_spent> <eos_held> <eth_held> <btc_held>\n"
     exit 2
 fi
 
@@ -9,18 +9,30 @@ fi
 AMT_SPENT=$1
 EOS_HELD=$2
 ETH_HELD=$3
+BTC_HELD=$4
+
+# this function takes in one arg which is the string associated
+# with the desired currency on coinmarketcap.com
+function price_of {
+    url=https://coinmarketcap.com/currencies/
+    url=${url}${1}/
+    
+    curl -s ${url} | grep document.title | cut -d$ -f 2 | cut -d" " -f 1
+}
 
 # get prices
-EOS_PRICE=$(curl -s https://coinmarketcap.com/currencies/eos/ | grep document.title | cut -d$ -f 2 | cut -d" " -f 1)
-ETH_PRICE=$(curl -s https://coinmarketcap.com/currencies/ethereum/ | grep document.title | cut -d$ -f 2 | cut -d" " -f 1)
+EOS_PRICE=$(price_of eos)
+ETH_PRICE=$(price_of ethereum)
+BTC_PRICE=$(price_of bitcoin)
 
 # print current prices
 echo "EOS currently at:    ${EOS_PRICE}"
 echo "ETH currently at:    ${ETH_PRICE}"
+echo "BTC currenlty at:    ${BTC_PRICE}"
 echo
 
 # calculate net gained/lost
-NET=$(echo "${EOS_PRICE} * ${EOS_HELD} + ${ETH_PRICE} * ${ETH_HELD} - ${AMT_SPENT}" | bc -l)
+NET=$(echo "${EOS_PRICE} * ${EOS_HELD} + ${ETH_PRICE} * ${ETH_HELD} + ${BTC_PRICE} * ${BTC_HELD} - ${AMT_SPENT}" | bc -l)
 
 # print out result
 echo -n "Net:                 "
