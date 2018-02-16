@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [[ -z $1 ||  -z $2 || -z $3 ]]; then
+    echo "\n\tUsage:\tcrypt <amt_spent> <eos_held/> <eth_held/>"
+    exit 2
+fi
+
+# assign keyword args
+AMT_SPENT=$1
+EOS_HELD=$2
+ETH_HELD=$3
+
+# get prices
+EOS_PRICE=$(curl -s https://coinmarketcap.com/currencies/eos/ | grep document.title | cut -d$ -f 2 | cut -d" " -f 1)
+ETH_PRICE=$(curl -s https://coinmarketcap.com/currencies/ethereum/ | grep document.title | cut -d$ -f 2 | cut -d" " -f 1)
+
+# print current prices
+echo "EOS currently at:    ${EOS_PRICE}"
+echo "ETH currently at:    ${ETH_PRICE}"
+echo
+
+# calculate net gained/lost
+NET=$(echo "${EOS_PRICE} * ${EOS_HELD} + ${ETH_PRICE} * ${ETH_HELD} - ${AMT_SPENT}" | bc -l)
+
+# print out result
+echo -n "Net:                 "
+echo ${NET}
